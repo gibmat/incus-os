@@ -33,8 +33,8 @@ func generateNetworkConfiguration(_ context.Context, networkCfg *seed.NetworkCon
 		return err
 	}
 
-	// When no configuration is provided, just DHCP on everything..
-	if networkCfg == nil {
+	// When no configuration is provided, just DHCP on everything.
+	if networkCfg == nil || len(networkCfg.Interfaces) == 0 {
 		return os.WriteFile(filepath.Join(SystemdNetworkConfigPath, "00-default.network"), []byte(
 			`[Match]
 Name=en*
@@ -78,7 +78,23 @@ UseMTU=true`), 0o644)
 
 // ApplyNetworkConfiguration instructs systemd-networkd to apply the supplied network configuration.
 func ApplyNetworkConfiguration(ctx context.Context, networkCfg *seed.NetworkConfig) error {
-	err := generateNetworkConfiguration(ctx, networkCfg)
+	// Fetch hostname from network config.
+	hostname := ""
+	if networkCfg != nil && networkCfg.Hostname != "" {
+		hostname = networkCfg.Hostname
+		if networkCfg.Domain != "" {
+			hostname += "." + networkCfg.Domain
+		}
+	}
+
+	// Apply the configured hostname.
+	err := SetHostname(ctx, hostname)
+	if err != nil {
+		return err
+	}
+
+	// Generate the various systemd network configuration files.
+	err = generateNetworkConfiguration(ctx, networkCfg)
 	if err != nil {
 		return err
 	}
