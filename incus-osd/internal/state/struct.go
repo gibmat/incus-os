@@ -8,6 +8,8 @@ import (
 	"github.com/lxc/incus-os/incus-osd/api"
 )
 
+var stateVersion = 0
+
 // SecureBoot represents the current state of Secure Boot key updates applied to the system.
 type SecureBoot struct {
 	Version      string `json:"version"`
