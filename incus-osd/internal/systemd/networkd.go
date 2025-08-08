@@ -710,11 +710,12 @@ func generateNetdevFileContents(networkCfg api.SystemNetworkConfig) []networkdCo
 			Contents: fmt.Sprintf(`[NetDev]
 Name=%s
 Kind=bridge
+MACAddress=%s
 %s
 
 [Bridge]
 VLANFiltering=true
-`, i.Name, mtuString),
+`, i.Name, i.Hwaddr, mtuString),
 		})
 	}
 
@@ -739,16 +740,22 @@ Mode=%s
 		})
 
 		// Bridge.
+		bondMacAddr := b.Hwaddr
+		if bondMacAddr == "" {
+			bondMacAddr = b.Members[0]
+		}
+
 		ret = append(ret, networkdConfigFile{
 			Name: fmt.Sprintf("11-%s.netdev", b.Name),
 			Contents: fmt.Sprintf(`[NetDev]
 Name=%s
 Kind=bridge
+MACAddress=%s
 %s
 
 [Bridge]
 VLANFiltering=true
-`, b.Name, mtuString),
+`, b.Name, bondMacAddr, mtuString),
 		})
 	}
 
