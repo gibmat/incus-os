@@ -829,6 +829,8 @@ UseMTU=true
 			cfgString += processRoutes(i.Routes)
 		}
 
+		cfgString += generateBridgeVLANContents(i.Name, i.VLAN, i.VLANTags, networkCfg.VLANs)
+
 		ret = append(ret, networkdConfigFile{
 			Name:     fmt.Sprintf("20-%s.network", i.Name),
 			Contents: cfgString,
@@ -874,6 +876,8 @@ UseMTU=true
 		if len(b.Routes) > 0 {
 			cfgString += processRoutes(b.Routes)
 		}
+
+		cfgString += generateBridgeVLANContents(b.Name, b.VLAN, b.VLANTags, networkCfg.VLANs)
 
 		ret = append(ret, networkdConfigFile{
 			Name:     fmt.Sprintf("21-%s.network", b.Name),
