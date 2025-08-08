@@ -698,14 +698,13 @@ Name=_p%s
 func generateNetdevFileContents(networkCfg api.SystemNetworkConfig) []networkdConfigFile {
 	ret := []networkdConfigFile{}
 
-	// Create bridge and veth devices for each interface.
+	// Create bridge device for each interface.
 	for _, i := range networkCfg.Interfaces {
 		mtuString := ""
 		if i.MTU != 0 {
 			mtuString = fmt.Sprintf("MTUBytes=%d", i.MTU)
 		}
 
-		// Bridge.
 		ret = append(ret, networkdConfigFile{
 			Name: fmt.Sprintf("10-%s.netdev", i.Name),
 			Contents: fmt.Sprintf(`[NetDev]
@@ -717,24 +716,9 @@ Kind=bridge
 VLANFiltering=true
 `, i.Name, mtuString),
 		})
-
-		// veth.
-		strippedHwaddr := strings.ToLower(strings.ReplaceAll(i.Hwaddr, ":", ""))
-		ret = append(ret, networkdConfigFile{
-			Name: fmt.Sprintf("10-_i%s.netdev", strippedHwaddr),
-			Contents: fmt.Sprintf(`[NetDev]
-Name=_i%s
-Kind=veth
-MACAddress=%s
-%s
-
-[Peer]
-Name=_v%s
-`, strippedHwaddr, i.Hwaddr, mtuString, i.Name),
-		})
 	}
 
-	// Create bond, bridge, and veth devices for each bond.
+	// Create bond and bridge devices for each bond.
 	for _, b := range networkCfg.Bonds {
 		mtuString := ""
 		if b.MTU != 0 {
@@ -765,26 +749,6 @@ Kind=bridge
 [Bridge]
 VLANFiltering=true
 `, b.Name, mtuString),
-		})
-
-		// veth.
-		bondMacAddr := b.Hwaddr
-		if bondMacAddr == "" {
-			bondMacAddr = b.Members[0]
-		}
-
-		strippedHwaddr := strings.ToLower(strings.ReplaceAll(bondMacAddr, ":", ""))
-		ret = append(ret, networkdConfigFile{
-			Name: fmt.Sprintf("11-_i%s.netdev", strippedHwaddr),
-			Contents: fmt.Sprintf(`[NetDev]
-Name=_i%s
-Kind=veth
-MACAddress=%s
-%s
-
-[Peer]
-Name=_v%s
-`, strippedHwaddr, bondMacAddr, mtuString, b.Name),
 		})
 	}
 
@@ -818,38 +782,10 @@ func generateNetworkFileContents(networkCfg api.SystemNetworkConfig) []networkdC
 
 	// Create networks for each interface and its bridge.
 	for _, i := range networkCfg.Interfaces {
-		// User side of veth device.
 		strippedHwaddr := strings.ToLower(strings.ReplaceAll(i.Hwaddr, ":", ""))
-		cfgString := fmt.Sprintf(`[Match]
-Name=_i%s
-
-[Network]
-LinkLocalAddressing=no
-ConfigureWithoutCarrier=yes
-`, strippedHwaddr)
-
-		ret = append(ret, networkdConfigFile{
-			Name:     fmt.Sprintf("20-_i%s.network", strippedHwaddr),
-			Contents: cfgString,
-		})
-
-		// Bridge side of veth device.
-		cfgString = fmt.Sprintf(`[Match]
-Name=_v%s
-
-[Network]
-Bridge=%s
-`, i.Name, i.Name)
-
-		cfgString += generateBridgeVLANContents(i.Name, i.VLAN, i.VLANTags, networkCfg.VLANs)
-
-		ret = append(ret, networkdConfigFile{
-			Name:     fmt.Sprintf("20-_v%s.network", i.Name),
-			Contents: cfgString,
-		})
 
 		// Add underlying interface to bridge.
-		cfgString = fmt.Sprintf(`[Match]
+		cfgString := fmt.Sprintf(`[Match]
 Name=_p%s
 
 [Network]
@@ -894,44 +830,8 @@ UseMTU=true
 
 	// Create networks for each bond, its member(s), and its bridge.
 	for _, b := range networkCfg.Bonds {
-		bondMacAddr := b.Hwaddr
-		if bondMacAddr == "" {
-			bondMacAddr = b.Members[0]
-		}
-
-		strippedHwaddr := strings.ToLower(strings.ReplaceAll(bondMacAddr, ":", ""))
-
-		// User side of veth device.
-		cfgString := fmt.Sprintf(`[Match]
-Name=_i%s
-
-[Network]
-LinkLocalAddressing=no
-ConfigureWithoutCarrier=yes
-`, strippedHwaddr)
-
-		ret = append(ret, networkdConfigFile{
-			Name:     fmt.Sprintf("21-_i%s.network", strippedHwaddr),
-			Contents: cfgString,
-		})
-
-		// Bridge side of veth device.
-		cfgString = fmt.Sprintf(`[Match]
-Name=_v%s
-
-[Network]
-Bridge=%s
-`, b.Name, b.Name)
-
-		cfgString += generateBridgeVLANContents(b.Name, b.VLAN, b.VLANTags, networkCfg.VLANs)
-
-		ret = append(ret, networkdConfigFile{
-			Name:     fmt.Sprintf("21-_v%s.network", b.Name),
-			Contents: cfgString,
-		})
-
 		// Add bond to bridge.
-		cfgString = fmt.Sprintf(`[Match]
+		cfgString := fmt.Sprintf(`[Match]
 Name=_b%s
 
 [Network]
