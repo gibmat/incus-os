@@ -19,3 +19,5 @@ incus-osd/kpx
 mkosi.packages/initrd-tmpfs-root*
 
 *.swp
+
+.sphinx/venv/
