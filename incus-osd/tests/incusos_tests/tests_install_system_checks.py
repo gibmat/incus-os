@@ -4,6 +4,20 @@ import tempfile
 
 from .incus_test_vm import IncusTestVM, util
 
+def TestInstallNoSecureBoot(install_image):
+    raise Exception("TODO")
+
+    test_name = "no-secure-boot"
+    test_seed = {}
+
+    test_image, incusos_version = util._prepare_test_image(install_image, test_seed)
+
+    with IncusTestVM(test_name, test_image) as vm:
+        # Perform IncusOS install.
+        vm.StartVM()
+        vm.WaitAgentRunning()
+        vm.WaitExpectedLog("incus-osd", "System check error: Secure Boot is not enabled")
+
 def TestInstallNoTPM(install_image):
     test_name = "no-tpm"
     test_seed = None
@@ -29,6 +43,9 @@ def TestInstallNoSeed(install_image):
         vm.StartVM()
         vm.WaitAgentRunning()
         vm.WaitExpectedLog("incus-osd", "System check error: unable to begin install without seed configuration")
+
+def TestInstallNoTarget(install_image):
+    raise Exception("TODO")
 
 def TestInstallTooManyTargets(install_image):
     test_name = "too-many-targets"
