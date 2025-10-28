@@ -189,10 +189,10 @@ func (p *local) checkRelease(_ context.Context) error {
 	return nil
 }
 
-func (p *local) copyAsset(_ context.Context, name string, target string, progressFunc func(float64)) error {
+func copyAsset(srcFile string, dstFile string, progressFunc func(float64)) error {
 	// Open the source.
 	// #nosec G304
-	src, err := os.Open(filepath.Join(p.path, name))
+	src, err := os.Open(srcFile)
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (p *local) copyAsset(_ context.Context, name string, target string, progres
 
 	// Open the destination.
 	// #nosec G304
-	dst, err := os.Create(filepath.Join(target, name))
+	dst, err := os.Create(dstFile)
 	if err != nil {
 		return err
 	}
@@ -261,9 +261,9 @@ func (a *localApplication) IsNewerThan(otherVersion string) bool {
 	return datetimeComparison(a.version, otherVersion)
 }
 
-func (a *localApplication) Download(ctx context.Context, target string, progressFunc func(float64)) error {
+func (a *localApplication) Download(_ context.Context, targetPath string, progressFunc func(float64)) error {
 	// Create the target path.
-	err := os.MkdirAll(target, 0o700)
+	err := os.MkdirAll(targetPath, 0o700)
 	if err != nil {
 		return err
 	}
@@ -277,7 +277,7 @@ func (a *localApplication) Download(ctx context.Context, target string, progress
 		}
 
 		// Copy the application.
-		err = a.provider.copyAsset(ctx, filepath.Base(asset), target, progressFunc)
+		err = copyAsset(asset, filepath.Join(targetPath, filepath.Base(asset)), progressFunc)
 		if err != nil {
 			return err
 		}
@@ -302,7 +302,7 @@ func (o *localOSUpdate) IsNewerThan(otherVersion string) bool {
 	return datetimeComparison(o.version, otherVersion)
 }
 
-func (o *localOSUpdate) DownloadUpdate(ctx context.Context, osName string, targetPath string, progressFunc func(float64)) error {
+func (o *localOSUpdate) DownloadUpdate(_ context.Context, osName string, targetPath string, progressFunc func(float64)) error {
 	// Clear the path.
 	err := os.RemoveAll(targetPath)
 	if err != nil && !os.IsNotExist(err) {
@@ -333,7 +333,7 @@ func (o *localOSUpdate) DownloadUpdate(ctx context.Context, osName string, targe
 		}
 
 		// Download the actual update.
-		err = o.provider.copyAsset(ctx, filepath.Base(asset), targetPath, progressFunc)
+		err = copyAsset(asset, filepath.Join(targetPath, filepath.Base(asset)), progressFunc)
 		if err != nil {
 			return err
 		}
@@ -363,7 +363,7 @@ func (o *localSecureBootCertUpdate) IsNewerThan(otherVersion string) bool {
 	return datetimeComparison(o.version, otherVersion)
 }
 
-func (o *localSecureBootCertUpdate) Download(ctx context.Context, osName string, target string) error {
+func (o *localSecureBootCertUpdate) Download(_ context.Context, osName string, targetPath string) error {
 	for _, asset := range o.assets {
 		// Only select Secure Boot keys for the expected version.
 		if !strings.HasPrefix(filepath.Base(asset), osName+"_SecureBootKeys_"+o.version) {
@@ -371,7 +371,7 @@ func (o *localSecureBootCertUpdate) Download(ctx context.Context, osName string,
 		}
 
 		// Download the actual update.
-		err := o.provider.copyAsset(ctx, filepath.Base(asset), target, nil)
+		err := copyAsset(asset, filepath.Join(targetPath, filepath.Base(asset)), nil)
 		if err != nil {
 			return err
 		}
