@@ -43,7 +43,7 @@ type SecureBootCertUpdate interface {
 	Version() string
 	IsNewerThan(otherVersion string) bool
 
-	Download(ctx context.Context, osName string, target string) error
+	Download(ctx context.Context, osName string, targetPath string) error
 }
 
 // Provider represents an update/application provider.
