@@ -78,3 +78,9 @@ def TestIncusOSAPISystemReboot(install_image):
         result = vm.APIRequest("/1.0/debug/log?unit=incus-osd&boot=-1")
         if result["status_code"] != 200:
             raise IncusOSException("unexpected status code %d: %s" % (result["status_code"], result["error"]))
+
+def TestIncusOSAPISystemBackupRestore(install_image):
+    raise IncusOSException("TODO")
+
+def TestIncusOSAPISystemFactoryReset(install_image):
+    raise IncusOSException("TODO")
