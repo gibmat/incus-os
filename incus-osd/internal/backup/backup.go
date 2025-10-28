@@ -254,11 +254,11 @@ func processNewState(ctx context.Context, oldState **state.State, newState *stat
 	}
 
 	// Make sure list of configured applications is consistent with the new state.
-	for oldApp := range (*oldState).Applications {
+	for oldAppName, oldApp := range (*oldState).Applications {
 		// Uninstall any application that's not present in the new state.
-		_, exists := newState.Applications[oldApp]
+		_, exists := newState.Applications[oldAppName]
 		if !exists {
-			err := uninstallApplication(ctx, *oldState, oldApp)
+			err := uninstallApplication(ctx, *oldState, oldAppName, oldApp.State.Version)
 			if err != nil {
 				return err
 			}
@@ -355,7 +355,7 @@ func processNewState(ctx context.Context, oldState **state.State, newState *stat
 	return (*oldState).Save()
 }
 
-func uninstallApplication(ctx context.Context, s *state.State, appName string) error {
+func uninstallApplication(ctx context.Context, s *state.State, appName string, appVersion string) error {
 	// Load the existing application.
 	app, err := applications.Load(ctx, s, appName)
 	if err != nil {
@@ -375,7 +375,7 @@ func uninstallApplication(ctx context.Context, s *state.State, appName string) e
 	}
 
 	// Remove the sysext layer.
-	return systemd.RemoveExtension(ctx, appName)
+	return systemd.RemoveExtension(ctx, appName+"_"+appVersion)
 }
 
 func installApplication(ctx context.Context, s *state.State, p providers.Provider, appName string) (string, error) {
@@ -392,7 +392,7 @@ func installApplication(ctx context.Context, s *state.State, p providers.Provide
 	}
 
 	// Verify the application is signed with a trusted key in the kernel's keyring.
-	err = systemd.VerifyExtensionCertificateFingerprint(ctx, filepath.Join(systemd.SystemExtensionsPath, papp.Name()+".raw"))
+	err = systemd.VerifyExtensionCertificateFingerprint(ctx, filepath.Join(systemd.SystemExtensionsPath, papp.Name()+"_"+papp.Version()+".raw"))
 	if err != nil {
 		return "", err
 	}

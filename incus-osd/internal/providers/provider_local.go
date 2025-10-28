@@ -124,7 +124,7 @@ func (p *local) GetApplication(ctx context.Context, name string) (Application, e
 	foundUpdateFile := false
 
 	for _, asset := range p.releaseAssets {
-		if filepath.Base(asset) == name+".raw" {
+		if filepath.Base(asset) == name+"_"+p.releaseVersion+".raw" {
 			foundUpdateFile = true
 
 			break
@@ -272,7 +272,7 @@ func (a *localApplication) Download(_ context.Context, targetPath string, progre
 		appName := strings.TrimSuffix(filepath.Base(asset), ".raw")
 
 		// Only select the desired applications.
-		if appName != a.name {
+		if appName != a.name+"_"+a.version {
 			continue
 		}
 

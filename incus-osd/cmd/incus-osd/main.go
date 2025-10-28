@@ -846,7 +846,7 @@ func checkDoAppUpdate(ctx context.Context, s *state.State, t *tui.TUI, p provide
 		}
 
 		// Verify the application is signed with a trusted key in the kernel's keyring.
-		err = systemd.VerifyExtensionCertificateFingerprint(ctx, filepath.Join(systemd.SystemExtensionsPath, app.Name()+".raw"))
+		err = systemd.VerifyExtensionCertificateFingerprint(ctx, filepath.Join(systemd.SystemExtensionsPath, app.Name()+"_"+app.Version()+".raw"))
 		if err != nil {
 			return "", err
 		}
