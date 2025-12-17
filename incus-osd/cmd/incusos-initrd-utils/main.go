@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"log/slog"
@@ -28,7 +29,7 @@ func main() {
 		case "measure-pcrs":
 			err = measurePCRs()
 		case "validate-pe-binaries":
-			err = secureboot.ValidatePEBinaries()
+			err = secureboot.ValidatePEBinaries(context.Background())
 		default:
 			err = fmt.Errorf("unsupported action '%s'", os.Args[1])
 		}
@@ -51,7 +52,7 @@ func measurePCRs() error {
 	defer tpmDev.Close()
 
 	// Get a synthetic event log that should be used to populate the TPM's PCR values.
-	rawLog, err := secureboot.SynthesizeTPMEventLog()
+	rawLog, err := secureboot.SynthesizeTPMEventLog(context.Background())
 	if err != nil {
 		return err
 	}

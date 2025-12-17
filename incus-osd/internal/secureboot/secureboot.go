@@ -79,7 +79,7 @@ func HandleSecureBootKeyChange(ctx context.Context, luksPassword string, ukiFile
 	}
 
 	// Pre-checks -- Verify that the TPM event log matches current TPM values.
-	eventLog, err := GetValidatedTPMEventLog()
+	eventLog, err := GetValidatedTPMEventLog(ctx)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func UpdatePCR4Binding(ctx context.Context, ukiFile string) error {
 	}
 
 	// Get and verify the current PCR states.
-	eventLog, err := GetValidatedTPMEventLog()
+	eventLog, err := GetValidatedTPMEventLog(ctx)
 	if err != nil {
 		return err
 	}
@@ -257,9 +257,9 @@ func ListCertificates() []api.SystemSecuritySecureBootCertificate {
 // ValidatePEBinaries checks that each PE binary measured in the TPM's PCR4 event log
 // still matches when read back from disk and that it is signed with a trusted IncusOS
 // certificate.
-func ValidatePEBinaries() error { //nolint:revive
+func ValidatePEBinaries(ctx context.Context) error { //nolint:revive
 	// Get and verify the current PCR states.
-	eventLog, err := GetValidatedTPMEventLog()
+	eventLog, err := GetValidatedTPMEventLog(ctx)
 	if err != nil {
 		return err
 	}

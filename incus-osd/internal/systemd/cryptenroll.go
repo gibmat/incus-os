@@ -164,7 +164,7 @@ func ListEncryptedVolumes(ctx context.Context) ([]api.SystemSecurityEncryptedVol
 		_, err = subprocess.RunCommandContext(ctx, "cryptsetup", "luksOpen", "--test-passphrase", volumeDev, volumeName)
 		if err != nil {
 			// Do we have a PCR mismatch on the TPM? If so, assume we can unlock with the TPM upon reboot.
-			if secureboot.TPMStatus() == secureboot.TPMPCRMismatch {
+			if secureboot.TPMStatus(ctx) == secureboot.TPMPCRMismatch {
 				ret = append(ret, api.SystemSecurityEncryptedVolume{
 					Volume: volumeName,
 					State:  "unlocked (TPM; PCR update pending)",

@@ -258,7 +258,7 @@ func processNewState(ctx context.Context, oldState **state.State, newState *stat
 	// 1. Need to be able to use TPM to change encryption recovery passphrase(s).
 	// 2. At least one recovery passphrase provided.
 	// 3. At least one primary application must be installed.
-	tpmStatus := secureboot.TPMStatus()
+	tpmStatus := secureboot.TPMStatus(ctx)
 	if tpmStatus != "ok" {
 		return errors.New("TPM status isn't OK: " + tpmStatus)
 	}
