@@ -18,10 +18,14 @@ def TestInstallUseSWTPM(install_image):
         # Should see a log message about swtpm
         vm.WaitExpectedLog("incus-osd", "Degraded security state: no physical TPM found, using swtpm")
 
-        # Check some PCR values: expect PCR0 to be empty with swtpm, while PCR7 and PCR11 should have non-zero values
+        # Check some PCR values: expect PCR0 to be empty with swtpm, while PCR4, PCR7 and PCR11 should have non-zero values
         result = vm.RunCommand("tpm2_pcrread", "sha256:0")
         if "0x0000000000000000000000000000000000000000000000000000000000000000" not in str(result.stdout):
             raise IncusOSException("PCR0 has a non-zero value")
+
+        result = vm.RunCommand("tpm2_pcrread", "sha256:4")
+        if "0x0000000000000000000000000000000000000000000000000000000000000000" in str(result.stdout):
+            raise IncusOSException("PCR4 isn't initialized")
 
         result = vm.RunCommand("tpm2_pcrread", "sha256:7")
         if "0x0000000000000000000000000000000000000000000000000000000000000000" in str(result.stdout):
