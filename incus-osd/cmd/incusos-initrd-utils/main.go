@@ -33,7 +33,7 @@ func main() {
 		case "seal-pcr15":
 			err = sealPCR15()
 		case "validate-pe-binaries":
-			err = secureboot.ValidatePEBinaries()
+			err = secureboot.ValidatePEBinaries(context.Background())
 			if err != nil && os.IsNotExist(err) {
 				// If we fail to find an expected PE binary, it might be because we're booting an installer on
 				// a system where IncusOS is already installed resulting in two /boot/ partitions being present.
@@ -53,7 +53,7 @@ func main() {
 
 				serviceErr := systemd.RestartUnit(context.Background(), "boot.mount")
 				if serviceErr == nil {
-					err = secureboot.ValidatePEBinaries()
+					err = secureboot.ValidatePEBinaries(context.Background())
 				}
 			}
 		default:
@@ -78,7 +78,7 @@ func measurePCRs() error {
 	defer tpmDev.Close()
 
 	// Get a synthetic event log that should be used to populate the TPM's PCR values.
-	rawLog, err := secureboot.SynthesizeTPMEventLog()
+	rawLog, err := secureboot.SynthesizeTPMEventLog(context.Background())
 	if err != nil {
 		return err
 	}
