@@ -358,7 +358,7 @@ func (*Server) apiDebugSecureBootEventLog(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	eventLog, err := secureboot.ReadTPMEventLog()
+	eventLog, err := secureboot.ReadTPMEventLog(r.Context())
 	if err != nil {
 		_ = response.InternalError(err).Render(w)
 
