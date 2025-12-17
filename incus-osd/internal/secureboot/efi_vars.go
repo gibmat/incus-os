@@ -265,7 +265,7 @@ func appendEFIVarUpdate(ctx context.Context, efiUpdateFile string, varName strin
 	}
 
 	// Get and verify the current PCR7 state.
-	eventLog, err := readTPMEventLog()
+	eventLog, err := readTPMEventLog(ctx)
 	if err != nil {
 		return err
 	}

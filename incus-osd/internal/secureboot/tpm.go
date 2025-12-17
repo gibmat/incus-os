@@ -2,6 +2,7 @@ package secureboot
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -12,8 +13,8 @@ import (
 )
 
 // TPMStatus returns basic information about the status of the TPM.
-func TPMStatus() string {
-	eventLog, err := readTPMEventLog()
+func TPMStatus(ctx context.Context) string {
+	eventLog, err := readTPMEventLog(ctx)
 	if err != nil {
 		return err.Error()
 	}
@@ -64,7 +65,7 @@ func GetSWTPMInUse() bool {
 }
 
 // readTPMEventLog reads the raw TPM measurements and returns a parsed array of Events with SHA256 hashes.
-func readTPMEventLog() ([]tcg.Event, error) {
+func readTPMEventLog(ctx context.Context) ([]tcg.Event, error) {
 	var buf []byte
 
 	var err error
@@ -76,7 +77,7 @@ func readTPMEventLog() ([]tcg.Event, error) {
 		}
 
 		// Fallback to a synthesized TPM event log for swtpm.
-		buf, err = SynthesizeTPMEventLog()
+		buf, err = SynthesizeTPMEventLog(ctx)
 		if err != nil {
 			return nil, err
 		}
