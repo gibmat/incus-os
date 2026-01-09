@@ -116,7 +116,7 @@ class IncusTestVM:
 
         subprocess.run(["incus", "wait", self.vm_name, "agent", "--timeout", str(timeout)], capture_output=True, check=True)
 
-    def WaitExpectedLog(self, unit, log, timeout=480, regex=False):
+    def WaitExpectedLog(self, unit, log, timeout=60, regex=False):
         """Wait for an expected log entry to appear in the VM."""
 
         start = time.time()
