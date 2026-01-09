@@ -127,7 +127,7 @@ class IncusTestVM:
 
             time.sleep(1)
 
-    def WaitExpectedLog(self, unit, log, timeout=480, regex=False):
+    def WaitExpectedLog(self, unit, log, timeout=60, regex=False):
         """Wait for an expected log entry to appear in the VM."""
 
         start = time.time()
