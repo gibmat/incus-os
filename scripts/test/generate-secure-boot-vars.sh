@@ -28,16 +28,20 @@ sign-efi-sig-list -g "${UUID}" -c "certs/${OS_NAME}-secureboot-PK-R1.crt" -k "ce
 openssl x509 -in "certs/${OS_NAME}-secureboot-KEK-R1.crt" -out certs/efi/secureboot-KEK-R1.der -outform DER
 openssl x509 -in "certs/${OS_NAME}-secureboot-KEK-R2.crt" -out certs/efi/secureboot-KEK-R2.der -outform DER
 cert-to-efi-sig-list -g "${UUID}" "certs/${OS_NAME}-secureboot-KEK-R1.crt" "certs/efi/${OS_NAME}-kek-1.esl"
-cert-to-efi-sig-list -g "${UUID}" "certs/${OS_NAME}-secureboot-KEK-R2.crt" "certs/efi/${OS_NAME}-kek-2.esl"
-cat "certs/efi/${OS_NAME}-kek-1.esl" "certs/efi/${OS_NAME}-kek-2.esl" > certs/efi/KEK.esl
-sign-efi-sig-list -g "${UUID}" -c "certs/${OS_NAME}-secureboot-PK-R1.crt" -k "certs/${OS_NAME}-secureboot-PK-R1.key" KEK certs/efi/KEK.esl certs/efi/KEK.auth
+sign-efi-sig-list -g "${UUID}" -c "certs/${OS_NAME}-secureboot-PK-R1.crt" -k "certs/${OS_NAME}-secureboot-PK-R1.key" KEK "certs/efi/${OS_NAME}-kek-1.esl" certs/efi/KEK.auth
 
 # First two trusted secure boot keys
 openssl x509 -in "certs/${OS_NAME}-secureboot-1-R1.crt" -out certs/efi/secureboot-DB-1.der -outform DER
 openssl x509 -in "certs/${OS_NAME}-secureboot-2-R1.crt" -out certs/efi/secureboot-DB-2.der -outform DER
 cert-to-efi-sig-list -g "${UUID}" "certs/${OS_NAME}-secureboot-1-R1.crt" "certs/efi/${OS_NAME}-secureboot-1.esl"
 cert-to-efi-sig-list -g "${UUID}" "certs/${OS_NAME}-secureboot-2-R1.crt" "certs/efi/${OS_NAME}-secureboot-2.esl"
-cat "certs/efi/${OS_NAME}-secureboot-1.esl" "certs/efi/${OS_NAME}-secureboot-2.esl" > certs/efi/DB.esl
+
+cp scripts/test/microsoft-certs/db/MicCorUEFCA2011_2011-06-27.der certs/efi/
+cp scripts/test/microsoft-certs/db/MicWinProPCA2011_2011-10-19.der certs/efi/
+cert-to-efi-sig-list -g "${UUID}" scripts/test/microsoft-certs/db/MicCorUEFCA2011_2011-06-27.crt certs/efi/MicCorUEFCA2011_2011-06-27.esl
+cert-to-efi-sig-list -g "${UUID}" scripts/test/microsoft-certs/db/MicWinProPCA2011_2011-10-19.crt certs/efi/MicWinProPCA2011_2011-10-19.esl
+
+cat certs/efi/MicCorUEFCA2011_2011-06-27.esl certs/efi/MicWinProPCA2011_2011-10-19.esl "certs/efi/${OS_NAME}-secureboot-1.esl" "certs/efi/${OS_NAME}-secureboot-2.esl" > certs/efi/DB.esl
 sign-efi-sig-list -g "${UUID}" -c "certs/${OS_NAME}-secureboot-KEK-R1.crt" -k "certs/${OS_NAME}-secureboot-KEK-R1.key" db certs/efi/DB.esl certs/efi/DB.auth
 
 mkdir -p certs/efi/updates/
