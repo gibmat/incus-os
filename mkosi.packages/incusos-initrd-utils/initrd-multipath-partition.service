@@ -1,0 +1,15 @@
+[Unit]
+Description=Partition multipath device(s)
+After=initrd-multipath.service initrd-swtpm.service systemd-tpm2-setup-early.service
+Requires=initrd-multipath.service initrd-swtpm.service systemd-tpm2-setup-early.service
+Before=basic.target systemd-repart.service systemd-tmpfiles-setup.service
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+ExecStart=/usr/bin/initrd-multipath-partition.sh
+
+[Install]
+WantedBy=basic.target systemd-repart.service systemd-tmpfiles-setup.service
