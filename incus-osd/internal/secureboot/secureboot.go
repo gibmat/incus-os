@@ -102,7 +102,7 @@ func HandleSecureBootKeyChange(ctx context.Context, luksPassword string, ukiFile
 	}
 
 	// Part 3 -- Compute the new PCR4 and PCR7 values.
-	newPCR4, err := computeNewPCR4Value(eventLog, ukiFile)
+	newPCR4, err := ComputeNewPCR4Value(eventLog, ukiFile)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func UpdatePCR4Binding(ctx context.Context, luksPassword string, ukiFile string)
 	}
 
 	// Compute new PCR4 value for the updated UKI.
-	newPCR4, err := computeNewPCR4Value(eventLog, ukiFile)
+	newPCR4, err := ComputeNewPCR4Value(eventLog, ukiFile)
 	if err != nil {
 		return err
 	}
