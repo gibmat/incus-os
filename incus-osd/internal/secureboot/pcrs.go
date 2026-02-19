@@ -131,7 +131,7 @@ func ReadPCR(index string) ([]byte, error) {
 
 // computeNewPCR4Value will compute the future PCR4 value after the systemd-boot or UKI EFI images are updated.
 // IMPORTANT: It is assumed that the provided TPM event log has already been validated.
-func computeNewPCR4Value(eventLog []tcg.Event, newUkiImage string) ([]byte, error) {
+func ComputeNewPCR4Value(eventLog []tcg.Event, newUkiImage string) ([]byte, error) {
 	actualPCR4Buf := make([]byte, 32)
 
 	for _, e := range eventLog {
