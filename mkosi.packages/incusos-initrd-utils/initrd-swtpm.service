@@ -1,7 +1,7 @@
 [Unit]
 Description=Start swtpm
-After=boot.mount
-Requires=boot.mount
+After=modprobe@tpm_vtpm_proxy.service boot.mount
+Requires=modprobe@tpm_vtpm_proxy.service boot.mount
 Before=cryptsetup.target systemd-cryptsetup@root.service systemd-repart.service
 DefaultDependencies=no
 ConditionPathExists=/boot/swtpm/
@@ -9,8 +9,8 @@ ConditionPathExists=/boot/swtpm/
 [Service]
 Type=exec
 
+ExecStartPre=/usr/bin/systemd-tmpfiles --prefix=/run --create --remove --boot
 ExecStartPre=/usr/bin/rm -f /boot/swtpm/tpm2-00.volatilestate
-ExecStartPre=/usr/sbin/modprobe tpm_vtpm_proxy
 ExecStart=/usr/bin/swtpm chardev --tpm2 --vtpm-proxy --tpmstate dir=/boot/swtpm/ --ctrl type=unixio,path=/run/swtpm.sock
 ExecStartPost=/usr/bin/sleep 1
 ExecStartPost=/usr/bin/incusos-initrd-utils measure-pcrs
