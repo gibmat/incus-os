@@ -3,8 +3,8 @@ module github.com/lxc/incus-os/incus-osd
 go 1.25.0
 
 require (
-	github.com/FuturFusion/migration-manager v0.5.8
-	github.com/FuturFusion/operations-center v0.3.1
+	github.com/FuturFusion/migration-manager v0.5.9
+	github.com/FuturFusion/operations-center v0.3.2
 	github.com/cavaliergopher/cpio v1.0.1
 	github.com/foxboron/go-uefi v0.0.0-20251010190908-d29549a44f29
 	github.com/gdamore/tcell/v2 v2.13.8
