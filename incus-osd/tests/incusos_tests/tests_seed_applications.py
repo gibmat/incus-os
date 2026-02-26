@@ -31,7 +31,7 @@ def TestSeedApplictionsInvalid(install_image):
         # Perform IncusOS install.
         vm.StartVM()
         vm.WaitAgentRunning()
-        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/sdb target=/dev/sda")
+        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0 target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root")
         vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")
 
         # Stop the VM post-install and remove install media.

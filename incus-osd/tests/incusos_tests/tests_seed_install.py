@@ -17,7 +17,7 @@ def TestSeedInstallReboot(install_image):
         # Perform IncusOS install.
         vm.StartVM()
         vm.WaitAgentRunning()
-        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/sdb target=/dev/sda")
+        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0 target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root")
         vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")
 
         # Wait for the VM to auto-reboot.
@@ -42,7 +42,7 @@ def TestSeedInstallTarget(install_image):
             # Perform IncusOS install.
             vm.StartVM()
             vm.WaitAgentRunning()
-            vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/sdc target=/dev/sda")
+            vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0 target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root")
             vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")
 
 def TestSeedInstallForce(install_image):
@@ -66,7 +66,7 @@ def TestSeedInstallForce(install_image):
             # Perform IncusOS install.
             vm.StartVM()
             vm.WaitAgentRunning()
-            vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/sdc target=/dev/sdb")
+            vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0 target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_disk1")
             vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")
 
 def TestSeedInstallEmpty(install_image):
@@ -81,7 +81,7 @@ def TestSeedInstallEmpty(install_image):
         # Perform IncusOS install.
         vm.StartVM()
         vm.WaitAgentRunning()
-        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/sdb target=/dev/sda")
+        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0 target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root")
         vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")
 
 def TestExternalSeedInstallEmpty(install_image):
@@ -104,7 +104,7 @@ def TestExternalSeedInstallEmpty(install_image):
             # Perform IncusOS install.
             vm.StartVM()
             vm.WaitAgentRunning()
-            vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/sdb target=/dev/sda")
+            vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0 target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root")
             vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")
 
 def TestExternalSeedInstallTarget(install_image):
@@ -129,5 +129,5 @@ def TestExternalSeedInstallTarget(install_image):
                 # Perform IncusOS install.
                 vm.StartVM()
                 vm.WaitAgentRunning()
-                vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/sd(c|d) target=/dev/sda", regex=True)
+                vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0 target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root")
                 vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")

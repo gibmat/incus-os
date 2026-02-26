@@ -41,7 +41,7 @@ var cdromMappedDevice = "/dev/mapper/sr0"
 var cdromRegex = regexp.MustCompile(`^/dev/sr(\d+)`)
 
 // CheckSystemRequirements verifies that the system meets the minimum requirements for running IncusOS.
-func CheckSystemRequirements(ctx context.Context, t *tui.TUI) error {
+func CheckSystemRequirements(ctx context.Context, t *tui.TUI) error { //nolint:revive
 	// Check if Secure Boot is enabled.
 	sbEnabled, err := secureboot.Enabled()
 	if err != nil {
@@ -129,12 +129,22 @@ func CheckSystemRequirements(ctx context.Context, t *tui.TUI) error {
 	// If we aren't going to perform an install but systemd-repart failed or we're running from a CDROM,
 	// display an appropriate error message to the user.
 	if !ShouldPerformInstall() && (systemd.IsFailed(ctx, "systemd-repart") || runningFromCDROM()) {
+		source := sourceDevice
+		if source == cdromMappedDevice {
+			source = cdromDevice
+		}
+
+		sourceDeviceID, err := storage.DeviceToID(ctx, source)
+		if err != nil {
+			return err
+		}
+
 		if sourceIsReadonly {
-			return fmt.Errorf("unable to begin install from read-only device '%s' without seed configuration", sourceDevice)
+			return fmt.Errorf("unable to begin install from read-only device '%s' without seed configuration", sourceDeviceID)
 		}
 
 		if sourceDeviceSize < 50*1024*1024*1024 {
-			return fmt.Errorf("source device '%s' is too small (%0.2fGiB), must be at least 50GiB", sourceDevice, float64(sourceDeviceSize)/(1024.0*1024.0*1024.0))
+			return fmt.Errorf("source device '%s' is too small (%0.2fGiB), must be at least 50GiB", sourceDeviceID, float64(sourceDeviceSize)/(1024.0*1024.0*1024.0))
 		}
 
 		// systemd-repart has failed for some reason; attempt to get its logs from the journal.
@@ -184,7 +194,12 @@ func CheckSystemRequirements(ctx context.Context, t *tui.TUI) error {
 
 		// Verify the target device is at least 50GiB.
 		if targetDeviceSize < 50*1024*1024*1024 {
-			return fmt.Errorf("target device '%s' is too small (%0.2fGiB), must be at least 50GiB", targetDevice, float64(targetDeviceSize)/(1024.0*1024.0*1024.0))
+			targetDeviceID, err := storage.DeviceToID(ctx, targetDevice)
+			if err != nil {
+				return err
+			}
+
+			return fmt.Errorf("target device '%s' is too small (%0.2fGiB), must be at least 50GiB", targetDeviceID, float64(targetDeviceSize)/(1024.0*1024.0*1024.0))
 		}
 
 		// If an applications seed is present, ensure at least one application is defined.
@@ -250,8 +265,27 @@ func (i *Install) DoInstall(ctx context.Context, osName string) error {
 		return err
 	}
 
-	slog.InfoContext(ctx, "Installing "+osName, "source", sourceDevice, "target", targetDevice)
-	modal.Update(fmt.Sprintf("Installing "+osName+" from %s to %s.", sourceDevice, targetDevice))
+	source := sourceDevice
+	if source == cdromMappedDevice {
+		source = cdromDevice
+	}
+
+	sourceDeviceID, err := storage.DeviceToID(ctx, source)
+	if err != nil {
+		modal.Update("[red]Error: " + err.Error())
+
+		return err
+	}
+
+	targetDeviceID, err := storage.DeviceToID(ctx, targetDevice)
+	if err != nil {
+		modal.Update("[red]Error: " + err.Error())
+
+		return err
+	}
+
+	slog.InfoContext(ctx, "Installing "+osName, "source", sourceDeviceID, "target", targetDeviceID)
+	modal.Update(fmt.Sprintf("Installing "+osName+" from %s to %s.", sourceDeviceID, targetDeviceID))
 
 	err = i.performInstall(ctx, modal, sourceDevice, targetDevice, sourceIsReadonly)
 	if err != nil {
@@ -507,7 +541,12 @@ func (i *Install) performInstall(ctx context.Context, modal *tui.Modal, sourceDe
 	}
 
 	if !strings.Contains(output, "Creating new GPT entries in memory") && !i.config.ForceInstall {
-		return fmt.Errorf("a partition table already exists on device '%s', and `ForceInstall` from install configuration isn't true", targetDevice)
+		targetDeviceID, err := storage.DeviceToID(ctx, targetDevice)
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("a partition table already exists on device '%s', and `ForceInstall` from install configuration isn't true", targetDeviceID)
 	}
 
 	// At this point, the target device either has no GPT table, or we will be force-installing over any existing data.
