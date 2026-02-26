@@ -4,6 +4,7 @@ After=boot.mount veritysetup-pre.target
 Requires=boot.mount
 Before=veritysetup.target
 DefaultDependencies=no
+ConditionPathExists=!/boot/swtpm/
 
 [Service]
 Type=oneshot
