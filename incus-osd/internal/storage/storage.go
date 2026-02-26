@@ -265,6 +265,11 @@ func DeviceToID(ctx context.Context, device string) (string, error) {
 	slices.Sort(candidates)
 
 	for _, dev := range candidates {
+		// For LVM devices, skip the uglier UUID symlink in favor of a human-readable one that should include drive's the serial number.
+		if strings.HasPrefix(dev, "disk/by-id/lvm-pv-uuid-") {
+			continue
+		}
+
 		if strings.HasPrefix(dev, "disk/by-id/") {
 			dev = strings.TrimSuffix(dev, "\n")
 
