@@ -17,10 +17,10 @@ def TestIncusOSAPISystemStorageImportPool(install_image):
         with IncusTestVM(test_name, test_image) as vm:
             vm.AddDevice("disk1", "disk", "source="+disk_img.name)
 
-            vm.WaitSystemReady(incusos_version, source="/dev/sdc", target="/dev/sd(a|b)")
+            vm.WaitSystemReady(incusos_version)
 
             # Can't import an unencrypted pool
-            vm.RunCommand("zpool", "create", "mypool", "/dev/sdb")
+            vm.RunCommand("zpool", "create", "mypool", "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_disk1")
             vm.RunCommand("zpool", "export", "mypool")
 
             result = vm.APIRequest("/1.0/system/storage/:import-pool", method="POST", body="""{"name":"mypool","type":"zfs","encryption_key":"NONE"}""")
@@ -31,8 +31,8 @@ def TestIncusOSAPISystemStorageImportPool(install_image):
                 raise IncusOSException("unexpected error message: " + result["error"])
 
             # Can't import an encrypted pool that doesn't use a raw key
-            vm.RunCommand("sgdisk", "-Z", "/dev/sdb")
-            vm.RunCommand("zpool", "create", "-O", "encryption=aes-256-gcm", "-O", "keyformat=passphrase", "-O", "keylocation=file:///var/lib/incus-os/state.txt", "mypool", "/dev/sdb")
+            vm.RunCommand("sgdisk", "-Z", "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_disk1")
+            vm.RunCommand("zpool", "create", "-O", "encryption=aes-256-gcm", "-O", "keyformat=passphrase", "-O", "keylocation=file:///var/lib/incus-os/state.txt", "mypool", "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_disk1")
             vm.RunCommand("zpool", "export", "mypool")
 
             result = vm.APIRequest("/1.0/system/storage/:import-pool", method="POST", body="""{"name":"mypool","type":"zfs","encryption_key":"secret-passphrase"}""")
@@ -43,8 +43,8 @@ def TestIncusOSAPISystemStorageImportPool(install_image):
                 raise IncusOSException("unexpected error message: " + result["error"])
 
             # Can't import an encrypted pool with an incorrect key
-            vm.RunCommand("sgdisk", "-Z", "/dev/sdb")
-            vm.RunCommand("zpool", "create", "-O", "encryption=aes-256-gcm", "-O", "keyformat=raw", "-O", "keylocation=file:///var/lib/incus-os/zpool.local.key", "mypool", "/dev/sdb")
+            vm.RunCommand("sgdisk", "-Z", "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_disk1")
+            vm.RunCommand("zpool", "create", "-O", "encryption=aes-256-gcm", "-O", "keyformat=raw", "-O", "keylocation=file:///var/lib/incus-os/zpool.local.key", "mypool", "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_disk1")
             vm.RunCommand("zpool", "export", "mypool")
 
             result = vm.APIRequest("/1.0/system/storage/:import-pool", method="POST", body="""{"name":"mypool","type":"zfs","encryption_key":"KoPGQLcHG/u4p8F82Jyl8mDfeElTEWlHE7pQV6bClCw="}""")

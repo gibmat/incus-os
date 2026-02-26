@@ -55,7 +55,7 @@ def TestIncusOSAPISystemStorageLocalPoolExpandRAID0(install_image):
         with IncusTestVM(test_name, test_image) as vm:
             vm.AddDevice("disk1", "disk", "source="+disk_img.name)
 
-            vm.WaitSystemReady(incusos_version, source="/dev/sdc")
+            vm.WaitSystemReady(incusos_version)
 
             # Get current storage state.
             result = vm.APIRequest("/1.0/system/storage")
@@ -200,7 +200,7 @@ def TestIncusOSAPISystemStorageLocalPoolExpandRAID1(install_image):
                 vm.AddDevice("disk1", "disk", "source="+disk1_img.name)
                 vm.AddDevice("disk2", "disk", "source="+disk2_img.name)
 
-                vm.WaitSystemReady(incusos_version, source="/dev/sdd")
+                vm.WaitSystemReady(incusos_version)
 
                 # Get current storage state.
                 result = vm.APIRequest("/1.0/system/storage")
@@ -366,7 +366,7 @@ def TestIncusOSAPISystemStorageLocalPoolRecoverFreshInstall(install_image):
         with IncusTestVM(test_name, test_image) as vm:
             vm.AddDevice("disk1", "disk", "source="+disk_img.name)
 
-            vm.WaitSystemReady(incusos_version, source="/dev/sdc")
+            vm.WaitSystemReady(incusos_version)
 
             # Convert "local" pool to RAID1 and get its encryption key
             result = vm.APIRequest("/1.0/system/storage", method="PUT", body="""{"config":{"scrub_schedule": "0 4 * * 0", "pools":[{"name":"local","type":"zfs-raid1","devices":["/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root-part11","/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_disk1"]}]}}""")
@@ -384,7 +384,7 @@ def TestIncusOSAPISystemStorageLocalPoolRecoverFreshInstall(install_image):
         with IncusTestVM(test_name, test_image) as vm:
             vm.AddDevice("disk1", "disk", "source="+disk_img.name)
 
-            vm.WaitSystemReady(incusos_version, source="/dev/sdc")
+            vm.WaitSystemReady(incusos_version)
             vm.WaitExpectedLog("incus-osd", "Attempting to recover storage pool 'local' using existing non-system drive")
 
             # After the pool is recovered, re-import it via API

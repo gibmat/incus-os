@@ -12,7 +12,7 @@ def TestInstallDontRemoveInstallMedia(install_image):
         # Perform IncusOS install.
         vm.StartVM()
         vm.WaitAgentRunning()
-        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/(sdb|mapper/sr0) target=/dev/sda", regex=True)
+        vm.WaitExpectedLog("incus-osd", "Installing IncusOS source=/dev/disk/by-id/(usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0|scsi-0QEMU_QEMU_CD-ROM_incus_boot--media) target=/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root", regex=True)
         vm.WaitExpectedLog("incus-osd", "IncusOS was successfully installed")
 
         # Stop the VM post-install but don't remove install media.
@@ -32,7 +32,7 @@ def TestBaselineInstall(install_image):
     test_image, incusos_version = util._prepare_test_image(install_image, test_seed)
 
     with IncusTestVM(test_name, test_image) as vm:
-        vm.WaitSystemReady(incusos_version, source="/dev/(sdb|mapper/sr0)")
+        vm.WaitSystemReady(incusos_version, source="/dev/disk/by-id/(usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0|scsi-0QEMU_QEMU_CD-ROM_incus_boot--media)")
 
         # Shouldn't see any mention of a degraded security state
         vm.LogDoesntContain("incus-osd", "Degraded security state:")
@@ -62,7 +62,7 @@ def TestBaselineInstallNVME(install_image):
     with IncusTestVM(test_name, test_image) as vm:
         vm.SetDeviceProperty("root", "io.bus=nvme")
 
-        vm.WaitSystemReady(incusos_version, source="/dev/(sda|mapper/sr0)", target="/dev/nvme0n1")
+        vm.WaitSystemReady(incusos_version, source="/dev/disk/by-id/(usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0|scsi-0QEMU_QEMU_CD-ROM_incus_boot--media)", target="/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_root")
 
         # Shouldn't see any mention of a degraded security state
         vm.LogDoesntContain("incus-osd", "Degraded security state:")
@@ -78,7 +78,7 @@ def TestBaselineInstallNVMEReadonlyImage(install_image):
     with IncusTestVM(test_name, test_image, readonly_install_image="true") as vm:
         vm.SetDeviceProperty("root", "io.bus=nvme")
 
-        vm.WaitSystemReady(incusos_version, source="/dev/sda", target="/dev/nvme0n1")
+        vm.WaitSystemReady(incusos_version, source="/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0", target="/dev/disk/by-id/nvme-QEMU_NVMe_Ctrl_incus_root")
 
         # Shouldn't see any mention of a degraded security state
         vm.LogDoesntContain("incus-osd", "Degraded security state:")

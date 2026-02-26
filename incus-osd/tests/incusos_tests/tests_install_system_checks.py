@@ -14,7 +14,7 @@ def TestInstallNoSeed(install_image):
         # Perform IncusOS install.
         vm.StartVM()
         vm.WaitAgentRunning()
-        vm.WaitExpectedLog("incus-osd", "System check error: source device '/dev/sdb' is too small \\(.+GiB\\), must be at least 50GiB", regex=True)
+        vm.WaitExpectedLog("incus-osd", "System check error: source device '/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0' is too small \\(.+GiB\\), must be at least 50GiB", regex=True)
 
 def TestInstallNoSeedReadonlyImage(install_image):
     test_name = "no-seed-readonly-image"
@@ -26,7 +26,7 @@ def TestInstallNoSeedReadonlyImage(install_image):
         # Perform IncusOS install.
         vm.StartVM()
         vm.WaitAgentRunning()
-        vm.WaitExpectedLog("incus-osd", "System check error: unable to begin install from read-only device '/dev/sdb' without seed configuration")
+        vm.WaitExpectedLog("incus-osd", "System check error: unable to begin install from read-only device '/dev/disk/by-id/usb-QEMU_QEMU_HARDDISK_1-0000:00:01.0:00.6-4-0:0' without seed configuration")
 
 def TestInstallTooManyTargets(install_image):
     test_name = "too-many-targets"
@@ -57,7 +57,7 @@ def TestInstallDriveTooSmall(install_image):
         # Perform IncusOS install.
         vm.StartVM()
         vm.WaitAgentRunning()
-        vm.WaitExpectedLog("incus-osd", "System check error: target device '/dev/sda' is too small (10.00GiB), must be at least 50GiB")
+        vm.WaitExpectedLog("incus-osd", "System check error: target device '/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root' is too small (10.00GiB), must be at least 50GiB")
 
 def TestInstallDriveWithGPT(install_image):
     test_name = "drive-with-gpt"
@@ -78,7 +78,7 @@ def TestInstallDriveWithGPT(install_image):
             # Perform IncusOS install.
             vm.StartVM()
             vm.WaitAgentRunning()
-            vm.WaitExpectedLog("incus-osd", "a partition table already exists on device '/dev/sdb', and `ForceInstall` from install configuration isn't true")
+            vm.WaitExpectedLog("incus-osd", "a partition table already exists on device '/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_incus_root', and `ForceInstall` from install configuration isn't true")
 
 def TestInstallCantDisableSBandTPM(install_image):
     test_name = "cant-disable-sb-and-tpm"
