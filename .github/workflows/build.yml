@@ -81,16 +81,16 @@ jobs:
 
           mv incus-osd/flasher-tool upload/
 
-          mv mkosi.output/debug.raw upload/
-          mv mkosi.output/gpu-support.raw upload/
-          mv mkosi.output/incus.raw upload/
-          mv mkosi.output/incus-ceph.raw upload/
-          mv mkosi.output/incus-linstor.raw upload/
-          mv mkosi.output/migration-manager.raw upload/
-          mv mkosi.output/operations-center.raw upload/
+          mv mkosi.output/debug_${{ github.ref_name }}.raw upload/
+          mv mkosi.output/gpu-support_${{ github.ref_name }}.raw upload/
+          mv mkosi.output/incus_${{ github.ref_name }}.raw upload/
+          mv mkosi.output/incus-ceph_${{ github.ref_name }}.raw upload/
+          mv mkosi.output/incus-linstor_${{ github.ref_name }}.raw upload/
+          mv mkosi.output/migration-manager_${{ github.ref_name }}.raw upload/
+          mv mkosi.output/operations-center_${{ github.ref_name }}.raw upload/
 
           mv mkosi.output/IncusOS_${{ github.ref_name }}.raw upload/IncusOS_${{ github.ref_name }}.img
-          mv mkosi.output/IncusOS_${{ github.ref_name }}.iso upload/IncusOS_${{ github.ref_name }}.iso
+          mv mkosi.output/IncusOS_${{ github.ref_name }}.iso upload/
           mv mkosi.output/IncusOS_${{ github.ref_name }}.efi upload/
           mv mkosi.output/IncusOS_${{ github.ref_name }}.usr-*.raw upload/
 

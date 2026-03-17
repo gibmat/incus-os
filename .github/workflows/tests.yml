@@ -152,8 +152,9 @@ jobs:
 
       - name: Load the extensions
         run: |
-          incus file push --quiet mkosi.output/debug.raw test-incus-os/root/updates/
-          incus file push --quiet mkosi.output/incus.raw test-incus-os/root/updates/
+          RELEASE=$(ls mkosi.output/*.efi | sed -e "s/.*_//g" -e "s/.efi//g" | sort -n | tail -1)
+
+          incus file push --quiet mkosi.output/incus_${RELEASE}.raw test-incus-os/root/updates/
 
           incus exec test-incus-os -- curl --unix-socket /run/incus-os/unix.socket http://localhost/1.0/system/update/:check -X POST
 

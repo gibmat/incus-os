@@ -176,13 +176,13 @@ test-applications:
 	incus exec test-incus-os -- mkdir -p /root/updates
 	echo ${RELEASE} | incus file push - test-incus-os/root/updates/RELEASE
 
-	incus file push mkosi.output/debug.raw test-incus-os/root/updates/
-	incus file push mkosi.output/gpu-support.raw test-incus-os/root/updates/
-	incus file push mkosi.output/incus.raw test-incus-os/root/updates/
-	incus file push mkosi.output/incus-ceph.raw test-incus-os/root/updates/
-	incus file push mkosi.output/incus-linstor.raw test-incus-os/root/updates/
-	incus file push mkosi.output/migration-manager.raw test-incus-os/root/updates/
-	incus file push mkosi.output/operations-center.raw test-incus-os/root/updates/
+	incus file push mkosi.output/debug_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/gpu-support_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/incus_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/incus-ceph_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/incus-linstor_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/migration-manager_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/operations-center_${RELEASE}.raw test-incus-os/root/updates/
 
 	incus exec test-incus-os -- curl --unix-socket /run/incus-os/unix.socket http://localhost/1.0/system/update/:check -X POST
 
@@ -194,13 +194,13 @@ test-update:
 
 	incus file push mkosi.output/IncusOS_${RELEASE}.efi test-incus-os/root/updates/
 	incus file push mkosi.output/IncusOS_${RELEASE}.usr* test-incus-os/root/updates/
-	incus file push mkosi.output/debug.raw test-incus-os/root/updates/
-	incus file push mkosi.output/gpu-support.raw test-incus-os/root/updates/
-	incus file push mkosi.output/incus.raw test-incus-os/root/updates/
-	incus file push mkosi.output/incus-ceph.raw test-incus-os/root/updates/
-	incus file push mkosi.output/incus-linstor.raw test-incus-os/root/updates/
-	incus file push mkosi.output/migration-manager.raw test-incus-os/root/updates/
-	incus file push mkosi.output/operations-center.raw test-incus-os/root/updates/
+	incus file push mkosi.output/debug_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/gpu-support_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/incus_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/incus-ceph_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/incus-linstor_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/migration-manager_${RELEASE}.raw test-incus-os/root/updates/
+	incus file push mkosi.output/operations-center_${RELEASE}.raw test-incus-os/root/updates/
 
 	incus exec test-incus-os -- curl --unix-socket /run/incus-os/unix.socket http://localhost/1.0/system/update/:check -X POST
 
