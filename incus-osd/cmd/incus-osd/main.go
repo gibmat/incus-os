@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -509,6 +510,55 @@ func startup(ctx context.Context, s *state.State, t *tui.TUI) error { //nolint:r
 					_ = os.Remove(filepath.Join(systemd.SystemExtensionsPath, file.Name()))
 				}
 			}
+		}
+	}
+
+	// Migrate existing sysext images under /var/lib/extensions/ to /var/lib/incus-os-extensions/.
+	// This code can be removed after April 2026.
+	err = os.MkdirAll(systemd.LocalExtensionsPath, 0o700)
+	if err != nil {
+		return err
+	}
+
+	migratedApps := false
+
+	for appName := range s.Applications {
+		movedApp := false
+
+		files, err := os.ReadDir(systemd.SystemExtensionsPath)
+		if err != nil {
+			return err
+		}
+
+		// Move each versioned sysext image for this application from /var/lib/extensions/
+		// to /var/lib/incus-os-extensions/, ignoring any symlinks that might exist.
+		for _, file := range files {
+			if file.Type()&fs.ModeSymlink == 0 && strings.HasPrefix(file.Name(), appName+"_") {
+				err := os.Rename(filepath.Join(systemd.SystemExtensionsPath, file.Name()), filepath.Join(systemd.LocalExtensionsPath, file.Name()))
+				if err != nil {
+					return err
+				}
+
+				movedApp = true
+			}
+		}
+
+		// If we moved at least one versioned sysext image for this application, remove the
+		// unversioned image, if it exists.
+		if movedApp {
+			err := os.Remove(filepath.Join(systemd.SystemExtensionsPath, appName+".raw"))
+			if err != nil && !os.IsNotExist(err) {
+				return err
+			}
+
+			migratedApps = true
+		}
+	}
+
+	if migratedApps {
+		err := systemd.RefreshExtensions(ctx)
+		if err != nil {
+			return err
 		}
 	}
 
