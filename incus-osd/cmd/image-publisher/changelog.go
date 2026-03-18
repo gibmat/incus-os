@@ -96,10 +96,17 @@ func generateChangelog(metaUpdate *apiupdate.Update, channel string, targetPath 
 
 			if priorVersion != "" {
 				// Replace the version string, if any, in the filename to use the previous version.
-				priorFilename := strings.Replace(f.Filename, "_"+metaUpdate.Version, "_"+priorVersion, 1)
+				priorFilenameVersion := strings.Replace(f.Filename, "_"+metaUpdate.Version, "_"+priorVersion, 1)
+				priorFilename := filepath.Join(targetPath, "../", priorVersion, priorFilenameVersion)
+
+				// If the prior manifest doesn't exist, try without a version in its filename.
+				_, err := os.Stat(priorFilename)
+				if err != nil && os.IsNotExist(err) {
+					priorFilename = strings.Replace(priorFilename, "_"+priorVersion+".manifest.json.gz", ".manifest.json.gz", 1)
+				}
 
 				// #nosec G304
-				priorManifestFileGz, err := os.Open(filepath.Join(targetPath, "../", priorVersion, priorFilename))
+				priorManifestFileGz, err := os.Open(priorFilename)
 				if err != nil && !os.IsNotExist(err) {
 					return err
 				}

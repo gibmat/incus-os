@@ -296,25 +296,25 @@ func (*cmdSync) downloadImage(ctx context.Context, archName string, releaseURL *
 		)
 
 		switch {
-		case assetName == "debug.raw.gz":
+		case assetName == "debug.raw.gz", strings.HasPrefix(assetName, "debug_") && strings.HasSuffix(assetName, ".raw.gz"):
 			assetComponent = apiupdate.UpdateFileComponentDebug
 			assetType = apiupdate.UpdateFileTypeApplication
-		case assetName == "gpu-support.raw.gz":
+		case assetName == "gpu-support.raw.gz", strings.HasPrefix(assetName, "gpu-support_") && strings.HasSuffix(assetName, ".raw.gz"):
 			assetComponent = apiupdate.UpdateFileComponentGPUSupport
 			assetType = apiupdate.UpdateFileTypeApplication
-		case assetName == "incus.raw.gz":
+		case assetName == "incus.raw.gz", strings.HasPrefix(assetName, "incus_") && strings.HasSuffix(assetName, ".raw.gz"):
 			assetComponent = apiupdate.UpdateFileComponentIncus
 			assetType = apiupdate.UpdateFileTypeApplication
-		case assetName == "incus-ceph.raw.gz":
+		case assetName == "incus-ceph.raw.gz", strings.HasPrefix(assetName, "incus-ceph_") && strings.HasSuffix(assetName, ".raw.gz"):
 			assetComponent = apiupdate.UpdateFileComponentIncusCeph
 			assetType = apiupdate.UpdateFileTypeApplication
-		case assetName == "incus-linstor.raw.gz":
+		case assetName == "incus-linstor.raw.gz", strings.HasPrefix(assetName, "incus-linstor_") && strings.HasSuffix(assetName, ".raw.gz"):
 			assetComponent = apiupdate.UpdateFileComponentIncusLinstor
 			assetType = apiupdate.UpdateFileTypeApplication
-		case assetName == "migration-manager.raw.gz":
+		case assetName == "migration-manager.raw.gz", strings.HasPrefix(assetName, "migration-manager_") && strings.HasSuffix(assetName, ".raw.gz"):
 			assetComponent = apiupdate.UpdateFileComponentMigrationManager
 			assetType = apiupdate.UpdateFileTypeApplication
-		case assetName == "operations-center.raw.gz":
+		case assetName == "operations-center.raw.gz", strings.HasPrefix(assetName, "operations-center_") && strings.HasSuffix(assetName, ".raw.gz"):
 			assetComponent = apiupdate.UpdateFileComponentOperationsCenter
 			assetType = apiupdate.UpdateFileTypeApplication
 		case strings.HasSuffix(assetName, ".efi.gz"):
