@@ -76,7 +76,7 @@ func (p *local) GetSecureBootCertUpdate(ctx context.Context) (SecureBootCertUpda
 		return nil, ErrNoUpdateAvailable
 	}
 
-	// Prepare the OS update struct.
+	// Prepare the Secure Boot struct.
 	update := localSecureBootCertUpdate{
 		provider: p,
 		assets:   p.releaseAssets,
@@ -126,12 +126,12 @@ func (p *local) GetApplicationUpdate(ctx context.Context, name string) (Applicat
 		return nil, err
 	}
 
-	// Verify the list of returned assets contains a "<name>.raw" file, otherwise
+	// Verify the list of returned assets contains a "<name>_<version>.raw" file, otherwise
 	// we shouldn't return an application update.
 	foundUpdateFile := false
 
 	for _, asset := range p.releaseAssets {
-		if filepath.Base(asset) == name+".raw" {
+		if filepath.Base(asset) == name+"_"+p.releaseVersion+".raw" {
 			foundUpdateFile = true
 
 			break
@@ -283,7 +283,7 @@ func (a *localApplication) Download(ctx context.Context, targetPath string, prog
 	}
 
 	for _, asset := range a.assets {
-		appName := strings.TrimSuffix(filepath.Base(asset), ".raw")
+		appName := strings.TrimSuffix(filepath.Base(asset), "_"+a.version+".raw")
 
 		// Only select the desired applications.
 		if appName != a.name {
