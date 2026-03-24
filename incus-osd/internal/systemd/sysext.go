@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/lxc/incus/v6/shared/subprocess"
 )
@@ -26,16 +27,27 @@ func RefreshExtensions(ctx context.Context) error {
 	return ReloadDaemon(ctx)
 }
 
-// RemoveExtension removes the specified system extension layer.
+// RemoveExtension removes all versions of the specified system extension image from disk.
 func RemoveExtension(ctx context.Context, name string) error {
-	// Remove the sysext image.
-	err := os.Remove(filepath.Join(SystemExtensionsPath, name+".raw"))
-	if err != nil {
-		return err
+	for _, dir := range []string{LocalExtensionsPath, SystemExtensionsPath} {
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+
+		// Remove any version of the sysext image that exists on disk.
+		for _, file := range files {
+			if strings.HasPrefix(file.Name(), name+"_") {
+				err := os.Remove(filepath.Join(dir, file.Name()))
+				if err != nil {
+					return err
+				}
+			}
+		}
 	}
 
-	// Refresh the system extensions.
-	return RefreshExtensions(ctx)
+	// Reload the extensions.
+	return reloadExtensions(ctx)
 }
 
 // VerifyExtension takes the filename of a sysext image and verifies its basic format is correct,
@@ -109,4 +121,15 @@ func VerifyExtension(ctx context.Context, extensionFile string) error {
 
 	// Now that we have a trusted certificate, verify the PKCS7 signature of the root hash.
 	return verifySignature(metadata.Signature, metadata.RootHash, trustedCert)
+}
+
+func reloadExtensions(ctx context.Context) error {
+	// Refresh the installed sysext images.
+	_, err := subprocess.RunCommandContext(ctx, "systemd-sysext", "refresh")
+	if err != nil {
+		return err
+	}
+
+	// Reload the systemd daemon.
+	return ReloadDaemon(ctx)
 }
