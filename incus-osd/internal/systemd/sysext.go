@@ -107,7 +107,8 @@ func RefreshExtensions(ctx context.Context, currentApps map[string]api.Applicati
 	// and don't unexpectedly try to force-reset application versions.
 	osInfo.PriorBootRelease = osInfo.RunningRelease
 
-	return nil
+	// Remove any old versions of each application.
+	return cleanupOldSysextImages(appVersions)
 }
 
 // RemoveExtension removes all versions of the specified system extension image from disk.
@@ -273,4 +274,45 @@ func getApplicationsVersions(currentApps map[string]api.Application) (map[string
 func bestApplicationVersion(appName string, version *availableApplicationVersions, osInfo *state.OS) string {
 	// For now, return the current application version.
 	return version.appVersion
+}
+
+func cleanupOldSysextImages(versions map[string]*availableApplicationVersions) error {
+	files, err := os.ReadDir(LocalExtensionsPath)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		parts := strings.Split(file.Name(), "_")
+
+		if len(parts) != 2 {
+			continue
+		}
+
+		// If the file isn't an image for a currently installed application, remove it.
+		app, ok := versions[parts[0]]
+		if !ok {
+			err := os.Remove(filepath.Join(LocalExtensionsPath, file.Name()))
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		version := strings.TrimSuffix(parts[1], ".raw")
+
+		// Don't remove sysext image if it is one of the possible application versions.
+		if version == app.appVersion || version == app.currentOSVersion || version == app.otherOSVersion || version == app.latestDiskVersion {
+			continue
+		}
+
+		// Remove the old application image.
+		err := os.Remove(filepath.Join(LocalExtensionsPath, file.Name()))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
