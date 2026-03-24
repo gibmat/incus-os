@@ -7,24 +7,107 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/lxc/incus/v6/shared/subprocess"
+
+	"github.com/lxc/incus-os/incus-osd/api"
+	"github.com/lxc/incus-os/incus-osd/internal/state"
+	"github.com/lxc/incus-os/incus-osd/internal/util"
 )
 
+type availableApplicationVersions struct {
+	appVersion        string // The version of the application according to the current state.
+	currentOSVersion  string // The version of the currently running IncusOS.
+	otherOSVersion    string // The version of the other IncusOS UKI, if any.
+	latestDiskVersion string // The latest version of the application that exists on disk.
+}
+
 // RefreshExtensions causes systemd-sysext to re-scan and reload the system extensions.
-func RefreshExtensions(ctx context.Context) error {
-	_, err := subprocess.RunCommandContext(ctx, "systemd-sysext", "refresh")
+func RefreshExtensions(ctx context.Context, currentApps map[string]api.Application, osInfo *state.OS) error {
+	// If no applications are defined, there's nothing to do.
+	if len(currentApps) == 0 {
+		return nil
+	}
+
+	// Begin by collecting information about the expected version(s) that exist
+	// on-disk for each installed application.
+	appVersions, err := getApplicationsVersions(currentApps)
 	if err != nil {
 		return err
 	}
 
-	// Reload the systemd daemon.
-	return ReloadDaemon(ctx)
+	// Ensure /var/lib/extensions/ exists.
+	err = os.MkdirAll(SystemExtensionsPath, 0o700)
+	if err != nil {
+		return err
+	}
+
+	// Remove any existing symlinked sysext images.
+	files, err := os.ReadDir(SystemExtensionsPath)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		// Important! We only remove symlinks. This ensures if we somehow end up
+		// in a situation where only an unversioned sysext image exists under
+		// /var/lib/extensions/ we don't wipe it which could potentially brick
+		// IncusOS if that image happened to be a primary application.
+		if file.Type()&fs.ModeSymlink != 0 {
+			err := os.Remove(filepath.Join(SystemExtensionsPath, file.Name()))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Symlink the best version of each application and ensure the application state
+	// reflects the selected on-disk version.
+	for name, version := range appVersions {
+		bestVersion := bestApplicationVersion(name, version, osInfo)
+
+		filename := name + "_" + bestVersion + ".raw"
+
+		// Create the new symlink.
+		err := os.Symlink(filepath.Join(LocalExtensionsPath, filename), filepath.Join(SystemExtensionsPath, filename))
+		if err != nil {
+			return err
+		}
+
+		// Update the application's state to reflect the on-disk version.
+		newAppState := currentApps[name]
+		newAppState.State.Version = bestVersion
+
+		newAppState.State.AvailableVersions = []string{version.appVersion, version.currentOSVersion, version.latestDiskVersion}
+
+		if version.otherOSVersion != "" {
+			newAppState.State.AvailableVersions = append(newAppState.State.AvailableVersions, version.otherOSVersion)
+		}
+
+		slices.Sort(newAppState.State.AvailableVersions)
+		newAppState.State.AvailableVersions = slices.Compact(newAppState.State.AvailableVersions)
+
+		currentApps[name] = newAppState
+	}
+
+	// Reload the extensions.
+	err = reloadExtensions(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Update the PriorBootRelease field. This ensures subsequent calls to RefreshExtensions() behave as expected
+	// and don't unexpectedly try to force-reset application versions.
+	osInfo.PriorBootRelease = osInfo.RunningRelease
+
+	return nil
 }
 
 // RemoveExtension removes all versions of the specified system extension image from disk.
@@ -132,4 +215,62 @@ func reloadExtensions(ctx context.Context) error {
 
 	// Reload the systemd daemon.
 	return ReloadDaemon(ctx)
+}
+
+func getApplicationsVersions(currentApps map[string]api.Application) (map[string]*availableApplicationVersions, error) {
+	appVersions := make(map[string]*availableApplicationVersions)
+
+	ukiVersions, err := util.GetUKIVersions()
+	if err != nil {
+		return appVersions, err
+	}
+
+	for name, app := range currentApps {
+		appVersions[name] = &availableApplicationVersions{
+			appVersion:        app.State.Version,
+			currentOSVersion:  ukiVersions.CurrentVersion,
+			otherOSVersion:    ukiVersions.OtherVersion,
+			latestDiskVersion: "", // Populated below
+		}
+	}
+
+	// Get information about each available sysext image to populate the latest disk version
+	// field for each application.
+	files, err := os.ReadDir(LocalExtensionsPath)
+	if err != nil {
+		return appVersions, err
+	}
+
+	for _, file := range files {
+		parts := strings.Split(file.Name(), "_")
+
+		if len(parts) != 2 {
+			continue
+		}
+
+		_, ok := appVersions[parts[0]]
+		if !ok {
+			continue
+		}
+
+		version := strings.TrimSuffix(parts[1], ".raw")
+
+		if appVersions[parts[0]].latestDiskVersion == "" || strings.Compare(appVersions[parts[0]].latestDiskVersion, version) < 0 {
+			appVersions[parts[0]].latestDiskVersion = version
+		}
+	}
+
+	// Ensure there's at least one version of each application on disk.
+	for name, version := range appVersions {
+		if version.latestDiskVersion == "" {
+			return appVersions, errors.New("no on-disk sysext image found for application '" + name + "'")
+		}
+	}
+
+	return appVersions, nil
+}
+
+func bestApplicationVersion(appName string, version *availableApplicationVersions, osInfo *state.OS) string {
+	// For now, return the current application version.
+	return version.appVersion
 }
