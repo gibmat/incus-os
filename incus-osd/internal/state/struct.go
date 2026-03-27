@@ -18,10 +18,11 @@ type SecureBoot struct {
 
 // OS represents the current OS image state.
 type OS struct {
-	Name           string `json:"name"`
-	RunningRelease string `json:"running_release"`
-	NextRelease    string `json:"next_release"`
-	SuccessfulBoot bool   `json:"successful_boot"`
+	Name             string `json:"name"`
+	RunningRelease   string `json:"running_release"`
+	NextRelease      string `json:"next_release"`
+	PriorBootRelease string `json:"prior_boot_release"`
+	SuccessfulBoot   bool   `json:"successful_boot"`
 }
 
 // State represents the on-disk persistent state.

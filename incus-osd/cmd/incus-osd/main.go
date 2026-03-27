@@ -292,7 +292,12 @@ func run(ctx context.Context, s *state.State, t *tui.TUI) error {
 
 func shutdown(ctx context.Context, s *state.State, t *tui.TUI) error {
 	// Save state on exit.
-	defer func() { _ = s.Save() }()
+	defer func() {
+		// Record the current release of IncusOS as the prior booted version.
+		s.OS.PriorBootRelease = s.OS.RunningRelease
+
+		_ = s.Save()
+	}()
 
 	modal := t.AddModal("System Shutdown", "shutdown")
 
