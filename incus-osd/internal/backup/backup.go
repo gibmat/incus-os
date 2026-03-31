@@ -317,7 +317,6 @@ func processNewState(ctx context.Context, oldState **state.State, newState *stat
 
 			// Update the application's state.
 			a.State.Version = appVersion
-			a.State.Initialized = true
 			newState.Applications[newApp] = a
 		}
 	}
