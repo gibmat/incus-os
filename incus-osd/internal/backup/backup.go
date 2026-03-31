@@ -303,7 +303,14 @@ func processNewState(ctx context.Context, oldState **state.State, newState *stat
 				return err
 			}
 
+			// Install the application.
 			appVersion, err := p.InstallApplication(ctx, newState, newApp)
+			if err != nil {
+				return err
+			}
+
+			// Start and Initialize the application.
+			err = applications.StartInitialize(ctx, newState, newApp)
 			if err != nil {
 				return err
 			}

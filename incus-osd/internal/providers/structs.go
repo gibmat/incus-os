@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/lxc/incus-os/incus-osd/certs"
-	"github.com/lxc/incus-os/incus-osd/internal/applications"
 	"github.com/lxc/incus-os/incus-osd/internal/state"
 	"github.com/lxc/incus-os/incus-osd/internal/systemd"
 )
@@ -118,24 +117,6 @@ func installApplication(ctx context.Context, s *state.State, p Provider, appName
 
 	// Reload sysext layer.
 	err = systemd.RefreshExtensions(ctx, s.Applications, &s.OS)
-	if err != nil {
-		return "", err
-	}
-
-	// Get the application.
-	app, err := applications.Load(ctx, s, appName)
-	if err != nil {
-		return "", err
-	}
-
-	// Start the application.
-	err = app.Start(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	// Initialize the application.
-	err = app.Initialize(ctx)
 	if err != nil {
 		return "", err
 	}
