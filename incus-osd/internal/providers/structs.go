@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/lxc/incus-os/incus-osd/api"
 	"github.com/lxc/incus-os/incus-osd/certs"
 	"github.com/lxc/incus-os/incus-osd/internal/state"
 	"github.com/lxc/incus-os/incus-osd/internal/systemd"
@@ -111,6 +112,20 @@ func installApplication(ctx context.Context, s *state.State, p Provider, appName
 
 	// Verify the application is signed with a trusted key in the kernel's keyring.
 	err = systemd.VerifyExtension(ctx, filepath.Join(systemd.LocalExtensionsPath, update.Name()+"_"+update.Version()+".raw"))
+	if err != nil {
+		return "", err
+	}
+
+	// Add the new application to the system state.
+	s.Applications[appName] = api.Application{
+		State: api.ApplicationState{
+			Initialized: false,
+			Version:     update.Version(),
+		},
+	}
+
+	// Save the state.
+	err = s.Save()
 	if err != nil {
 		return "", err
 	}

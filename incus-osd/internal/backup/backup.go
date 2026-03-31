@@ -314,10 +314,6 @@ func processNewState(ctx context.Context, oldState **state.State, newState *stat
 			if err != nil {
 				return err
 			}
-
-			// Update the application's state.
-			a.State.Version = appVersion
-			newState.Applications[newApp] = a
 		}
 	}
 
