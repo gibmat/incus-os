@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	incusclient "github.com/lxc/incus/v6/client"
@@ -302,10 +303,39 @@ func (a *incus) UpdateConfig(ctx context.Context, req any) error {
 	// Update the configuration.
 	a.state.Applications.Incus.Config = newState.Config
 
-	// FIXME -- write configuration for Incus
+	// Update /etc/default/incus.
+	err := os.Remove("/etc/default/incus")
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	// Write LXCFS_OPTS to /etc/default/incus if needed.
+	if a.state.Applications.Incus.Config.LXCFS.CPUShares || a.state.Applications.Incus.Config.LXCFS.LoadAverage {
+		f, err := os.Create("/etc/default/incus")
+		if err != nil {
+			return err
+		}
+
+		defer f.Close()
+
+		args := []string{}
+
+		if a.state.Applications.Incus.Config.LXCFS.CPUShares {
+			args = append(args, "--enable-cfs")
+		}
+
+		if a.state.Applications.Incus.Config.LXCFS.LoadAverage {
+			args = append(args, "--enable-loadavg")
+		}
+
+		_, err = f.WriteString(`LXCFS_OPTS="` + strings.Join(args, " ") + "\"\n")
+		if err != nil {
+			return err
+		}
+	}
 
 	// Save the state.
-	err := a.state.Save()
+	err = a.state.Save()
 	if err != nil {
 		return err
 	}
