@@ -107,6 +107,10 @@ func (a *incus) FactoryReset(ctx context.Context) error {
 	return a.Initialize(ctx)
 }
 
+func (a *incus) Get(_ context.Context) (any, error) {
+	return a.state.Applications.Incus, nil
+}
+
 // GetBackup returns a tar archive backup of the application's configuration and/or state.
 func (*incus) GetBackup(archive io.Writer, _ bool) error {
 	return createTarArchive("/var/lib/incus/", []string{"guestapi", "shmounts", "unix.socket"}, archive)
@@ -232,6 +236,10 @@ func (a *incus) RestoreBackup(ctx context.Context, archive io.Reader) error {
 	return nil
 }
 
+func (*incus) Struct() any {
+	return &api.ApplicationIncus{}
+}
+
 // Start starts all the systemd units.
 func (*incus) Start(ctx context.Context) error {
 	// Refresh the system users.
@@ -283,6 +291,27 @@ func (*incus) Update(ctx context.Context) error {
 
 	// Restart the main unit.
 	return systemd.RestartUnit(ctx, "incus.service")
+}
+
+func (a *incus) UpdateConfig(ctx context.Context, req any) error {
+	newState, ok := req.(*api.ApplicationIncus)
+	if !ok {
+		return fmt.Errorf("request type \"%T\" isn't expected ApplicationIncus", req)
+	}
+
+	// Update the configuration.
+	a.state.Applications.Incus.Config = newState.Config
+
+	// FIXME -- write configuration for Incus
+
+	// Save the state.
+	err := a.state.Save()
+	if err != nil {
+		return err
+	}
+
+	// Restart the application.
+	return a.Update(ctx)
 }
 
 // WipeLocalData removes local data created by the application.
