@@ -5,11 +5,14 @@ import (
 	"crypto/tls"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/lxc/incus-os/incus-osd/api"
 	"github.com/lxc/incus-os/incus-osd/internal/rest/response"
 	"github.com/lxc/incus-os/incus-osd/internal/state"
+	"github.com/lxc/incus-os/incus-osd/internal/systemd"
 )
 
 type common struct {
@@ -108,6 +111,45 @@ func (*common) Name() string {
 // NeedsLateUpdateCheck reports if the application depends on a delayed provider update check.
 func (*common) NeedsLateUpdateCheck() bool {
 	return false
+}
+
+// RemoveStaleSysextImages removes any stale sysext images for the application. If removeAll
+// is true, all versions will be removed, otherwise only versions that aren't listed in the
+// application's AvailableVersions will be removed.
+func (a *common) RemoveStaleSysextImages(removeAll bool) error {
+	dirEntries, err := os.ReadDir(systemd.LocalExtensionsPath)
+	if err != nil {
+		return err
+	}
+
+	// Iterate through each directory under /var/lib/incus-os-extensions/, which
+	// corresponds to the version of one or more installed applications.
+	for _, entry := range dirEntries {
+		// Only consider version directories.
+		if !entry.IsDir() {
+			continue
+		}
+
+		// Don't remove any version that is in the skipVersions list.
+		if !removeAll && slices.Contains(a.appState.AvailableVersions, entry.Name()) {
+			continue
+		}
+
+		// Check if an application image exists, and if so, remove it.
+		_, err := os.Stat(filepath.Join(systemd.LocalExtensionsPath, entry.Name(), a.Name()+".raw"))
+		if err == nil {
+			err := os.Remove(filepath.Join(systemd.LocalExtensionsPath, entry.Name(), a.Name()+".raw"))
+			if err != nil {
+				return err
+			}
+
+			// Opportunistically attempt to remove the directory. This will fail
+			// if it is non-empty, which is OK.
+			_ = os.Remove(filepath.Join(systemd.LocalExtensionsPath, entry.Name()))
+		}
+	}
+
+	return nil
 }
 
 // Restart restarts runs restart action.

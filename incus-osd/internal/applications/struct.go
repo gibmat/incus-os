@@ -27,6 +27,7 @@ type Application interface { //nolint:interfacebloat
 	IsRunning(ctx context.Context) bool
 	Name() string
 	NeedsLateUpdateCheck() bool
+	RemoveStaleSysextImages(removeAll bool) error
 	Restart(ctx context.Context) error
 	RestoreBackup(ctx context.Context, archive io.Reader) error
 	SetVersions(version string, availableVersions []string)
