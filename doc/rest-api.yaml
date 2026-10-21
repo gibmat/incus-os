@@ -12,6 +12,17 @@ definitions:
         title: ApplicationAction defines a generic struct that can be used when triggering an application-specific action.
         type: object
         x-go-package: github.com/lxc/incus-os/incus-osd/api
+    ApplicationInstall:
+        properties:
+            force_reinstall:
+                type: boolean
+                x-go-name: ForceReinstall
+            name:
+                type: string
+                x-go-name: Name
+        title: ApplicationInstall defines a struct that is used when installing an application.
+        type: object
+        x-go-package: github.com/lxc/incus-os/incus-osd/api
     DebugKernel:
         properties:
             architecture:
@@ -1747,9 +1758,7 @@ paths:
                   name: application
                   required: true
                   schema:
-                    example:
-                        name: gpu-support
-                    type: object
+                    $ref: '#/definitions/ApplicationInstall'
             produces:
                 - application/json
             responses:
